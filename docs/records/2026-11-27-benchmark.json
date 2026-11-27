@@ -1,0 +1,86 @@
+{
+  "1.jpg": {
+    "size": [
+      800,
+      800
+    ],
+    "color": {
+      "time_ms": [
+        305,
+        136,
+        126
+      ],
+      "median_ms": 136,
+      "rss_peak_mib": 77.0,
+      "rss_before_mib": 48.6,
+      "assets": 14,
+      "status": "ready",
+      "partial_alpha_pixels": 20027
+    },
+    "mobilesam": {
+      "time_ms": [
+        6751
+      ],
+      "median_ms": 6751,
+      "rss_peak_mib": 453.3,
+      "rss_before_mib": 75.3,
+      "assets": 17
+    }
+  },
+  "2.jpg": {
+    "size": [
+      600,
+      372
+    ],
+    "color": {
+      "time_ms": [
+        32,
+        32,
+        38
+      ],
+      "median_ms": 32,
+      "rss_peak_mib": 67.2,
+      "rss_before_mib": 59.4,
+      "assets": 19,
+      "status": "ready",
+      "partial_alpha_pixels": 8958
+    },
+    "mobilesam": {
+      "time_ms": [
+        4828
+      ],
+      "median_ms": 4828,
+      "rss_peak_mib": 460.1,
+      "rss_before_mib": 450.7,
+      "assets": 14
+    }
+  },
+  "3.jpg": {
+    "size": [
+      1784,
+      1681
+    ],
+    "color": {
+      "time_ms": [
+        455,
+        559,
+        485
+      ],
+      "median_ms": 485,
+      "rss_peak_mib": 149.2,
+      "rss_before_mib": 69.7,
+      "assets": 47,
+      "status": "ready",
+      "partial_alpha_pixels": 114218
+    },
+    "mobilesam": {
+      "time_ms": [
+        4689
+      ],
+      "median_ms": 4689,
+      "rss_peak_mib": 495.8,
+      "rss_before_mib": 450.8,
+      "assets": 23
+    }
+  }
+}

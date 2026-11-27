@@ -1,0 +1,35 @@
+{
+  "native": [
+    {
+      "milliseconds": 2253,
+      "positive": 3487
+    },
+    {
+      "milliseconds": 1195,
+      "positive": 3487
+    },
+    {
+      "milliseconds": 1197,
+      "positive": 3487
+    }
+  ],
+  "wasm": {
+    "isolated": true,
+    "threads": 3,
+    "setupMs": 771,
+    "results": [
+      {
+        "milliseconds": 2564,
+        "positive": 3486
+      },
+      {
+        "milliseconds": 2536,
+        "positive": 3486
+      },
+      {
+        "milliseconds": 2362,
+        "positive": 3486
+      }
+    ]
+  }
+}
