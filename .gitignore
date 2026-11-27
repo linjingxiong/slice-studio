@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+models/*.onnx
+models/*.part
+tests/artifacts/
+test-assets/

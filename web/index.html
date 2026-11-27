@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#16191d">
+  <title>Slice Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/web/mark.svg">
+  <link rel="stylesheet" href="/web/studio.css">
+  <script type="module" src="/web/studio.js"></script>
+</head>
+<body>
+  <header class="titlebar">
+    <a class="brand" href="/" aria-label="Slice Studio 首页"><span class="brand-mark" data-icon="logo"></span><strong>Slice Studio</strong></a>
+    <div class="title-divider"></div>
+    <details id="project-menu" class="menu">
+      <summary class="button quiet"><span data-icon="folder"></span><span>项目</span><span data-icon="chevron"></span></summary>
+      <div class="popover">
+        <button id="new-project">新建项目 <kbd>Ctrl+O</kbd></button>
+        <button id="project-save">下载项目文件</button>
+        <button id="project-open">打开项目文件</button>
+        <div class="menu-section">本机最近项目</div><div id="recent"></div>
+      </div>
+    </details>
+    <div class="project-name" id="project-name">未命名项目</div>
+    <div class="title-end"><span class="saved" id="saved">本机工作区</span><button class="icon-button" id="help-button" title="快捷键与帮助" aria-label="快捷键与帮助" data-icon="help"></button></div>
+  </header>
+  <header class="commandbar">
+    <button class="button import" id="import"><span data-icon="upload"></span><span>导入图片</span></button>
+    <div class="divider"></div>
+    <div class="split">
+      <button class="button recognize" id="analyze" disabled><span data-icon="spark"></span><span>智能识别</span></button>
+      <details class="menu" id="analysis-menu">
+        <summary class="icon-button" title="识别设置" aria-label="识别设置" data-icon="chevron"></summary>
+        <div class="popover settings">
+          <label for="method">识别引擎</label>
+          <select id="method"><option value="auto">自动选择</option><option value="color">颜色分割</option><option value="sam">MobileSAM</option></select>
+          <label for="sensitivity">灵敏度 <output id="sensitivity-value">50</output></label>
+          <input id="sensitivity" type="range" min="0" max="100" value="50">
+          <small id="model-note">检查本地模型…</small>
+        </div>
+      </details>
+    </div>
+    <div class="divider"></div>
+    <button class="icon-button" id="undo" title="撤销（Ctrl+Z）" aria-label="撤销" data-icon="undo" disabled></button>
+    <button class="icon-button" id="redo" title="重做（Ctrl+Shift+Z）" aria-label="重做" data-icon="redo" disabled></button>
+    <div class="command-end"></div>
+    <button class="icon-button panel-toggle" title="素材面板" aria-label="素材面板" aria-expanded="false" data-icon="panel"></button>
+    <button class="button primary" id="export" disabled><span data-icon="download"></span><span>导出素材</span></button>
+  </header>
+  <main class="workbench">
+    <nav class="tools" aria-label="编辑工具">
+      <button class="tool current" data-tool="select" data-icon="cursor" title="选择（V）" aria-label="选择（V）" aria-pressed="true"></button>
+      <button class="tool" data-tool="box" data-icon="frame" title="框选（M）" aria-label="框选（M）" aria-pressed="false"></button>
+      <button class="tool" data-tool="segment" data-icon="wand" title="分割（W）" aria-label="分割（W）" aria-pressed="false"></button>
+      <button class="tool" data-tool="lasso" data-icon="lasso" title="套索（L）" aria-label="套索（L）" aria-pressed="false"></button>
+      <hr>
+      <button class="tool" data-tool="brush" data-icon="brush" title="恢复蒙版（B）" aria-label="恢复蒙版（B）" aria-pressed="false"></button>
+      <button class="tool" data-tool="erase" data-icon="eraser" title="擦除蒙版（E）" aria-label="擦除蒙版（E）" aria-pressed="false"></button>
+      <hr>
+      <button class="tool" data-tool="pan" data-icon="hand" title="平移（H 或空格）" aria-label="平移（H 或空格）" aria-pressed="false"></button>
+    </nav>
+    <section class="editor" aria-label="画布">
+      <div class="editor-head">
+        <div class="view-tabs" role="group" aria-label="画布视图">
+          <button class="active" data-view="source" aria-pressed="true">原图</button><button data-view="outline" aria-pressed="false">识别边界</button><button data-view="mask" aria-pressed="false">蒙版</button><button data-view="alpha" aria-pressed="false">透明</button><button data-view="compare" aria-pressed="false">对比</button>
+        </div>
+        <div class="zoom"><button class="icon-button" id="zoom-out" title="缩小" aria-label="缩小" data-icon="minus"></button><button id="zoom-label" title="适合窗口">自适应</button><button class="icon-button" id="zoom-in" title="放大" aria-label="放大" data-icon="plus"></button><button class="icon-button" id="fit" title="适合窗口（0）" aria-label="适合窗口（0）" data-icon="fit"></button></div>
+      </div>
+      <div class="tool-options" id="tool-options" hidden>
+        <span id="tool-hint"></span>
+        <label id="brush-field" hidden>笔径 <input id="brush-size" type="range" min="2" max="140" value="24"><output id="brush-value">24 px</output></label>
+        <label id="segment-field" hidden>引擎 <select id="segment-method"><option value="segment">颜色 / GrabCut</option><option value="sam">MobileSAM</option></select></label>
+        <label id="compare-field" hidden>对比位置 <input id="compare-position" type="range" min="0" max="100" value="50" aria-label="对比位置"></label>
+      </div>
+      <div class="viewport" id="viewport" tabindex="0" aria-label="图像编辑区域">
+        <canvas id="canvas" hidden></canvas>
+        <div id="empty" class="empty">
+          <div class="empty-art" aria-hidden="true"><div class="empty-sheet"><span data-icon="image"></span><i></i><i></i><i></i><i></i></div><span class="art-line one"></span><span class="art-line two"></span></div>
+          <h1>从一张图开始</h1>
+          <p>拖入图片，识别并提取独立素材。</p>
+          <button class="button primary" id="empty-import"><span data-icon="upload"></span>选择图片</button>
+          <small>PNG · JPG · WebP <span>／</span> 最大 40 MB</small>
+          <div class="sample-section" id="sample-section" hidden>
+            <div class="sample-label">打开示例素材</div>
+            <div class="sample-list">
+              <button data-sample="1" hidden><img alt=""><span>复古物件</span></button>
+              <button data-sample="2" hidden><img alt=""><span>等距场景</span></button>
+              <button data-sample="3" hidden><img alt=""><span>植物水彩</span></button>
+            </div>
+          </div>
+        </div>
+        <div id="drop-hint" hidden><span data-icon="upload"></span>释放以导入</div>
+      </div>
+    </section>
+    <aside id="inspector" class="inspector" aria-label="素材与属性">
+      <div class="panel-heading"><h2>素材</h2><span id="asset-count" class="count">0</span><div class="spacer"></div><button class="icon-button" id="all-assets" title="选择全部素材" aria-label="选择全部素材" data-icon="multi" disabled></button><button class="icon-button" id="delete" title="删除所选素材" aria-label="删除所选素材" data-icon="trash" disabled></button></div>
+      <div id="assets" class="assets" aria-label="素材列表"></div>
+      <div class="panel-heading prop-heading"><h2>属性</h2></div>
+      <div id="properties" class="properties"></div>
+      <div class="panel-foot"><span data-icon="lock"></span>仅在本机处理</div>
+    </aside>
+  </main>
+  <footer class="statusbar">
+    <span class="engine-state" id="engine-state"><i></i><span>本地引擎</span></span><span class="status-divider"></span><span id="dimensions">无图像</span><span id="selection-state">0 个素材</span>
+    <span class="spacer"></span>
+    <span id="progress" class="progress" role="progressbar" aria-label="正在处理" hidden><i></i></span>
+    <span id="status" role="status">就绪</span><button id="cancel" hidden>取消</button>
+  </footer>
+  <div id="notice" role="alert" hidden><span id="notice-text"></span><button class="icon-button" id="notice-close" title="关闭通知" aria-label="关闭通知" data-icon="close"></button></div>
+  <div id="context" class="popover" hidden>
+    <button id="context-preview">单独预览</button><button id="context-focus">在画布中定位</button><button id="context-export">导出所选素材</button><button id="context-delete">删除所选素材</button>
+  </div>
+  <dialog id="asset-preview" aria-labelledby="preview-name">
+    <div class="dialog-head">
+      <div><h2 id="preview-name">素材预览</h2><span id="preview-size"></span></div>
+      <button class="icon-button" id="preview-close" title="关闭" aria-label="关闭预览" data-icon="close"></button>
+    </div>
+    <div class="preview-controls">
+      <label>背景 <select id="preview-background"><option value="dark">深色</option><option value="light">浅色</option><option value="checker">棋盘格</option></select></label>
+      <label>缩放 <select id="preview-zoom"><option value="fit">适合窗口</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select></label>
+      <label id="preview-edge-label"><input type="checkbox" id="preview-edge">清理白边</label>
+    </div>
+    <div id="preview-stage" data-background="dark"><img id="preview-image" alt="" hidden><p id="preview-status" role="status"></p></div>
+    <div class="dialog-actions"><button class="button primary" id="preview-download" disabled><span data-icon="download"></span>下载 PNG</button></div>
+  </dialog>
+  <dialog id="export-dialog">
+    <form method="dialog" id="export-form">
+      <div class="dialog-head"><h2>导出素材</h2><button class="icon-button" value="cancel" formnovalidate title="关闭" aria-label="关闭" data-icon="close"></button></div>
+      <div class="dialog-body">
+        <label>范围<select id="export-scope"><option value="all">全部素材</option><option value="selected">所选素材</option></select></label>
+        <label>格式<select id="export-format"><option value="zip">ZIP · PNG 与坐标清单</option><option value="png">单张透明 PNG</option></select></label>
+        <p id="export-note">保留原始像素尺寸。</p>
+      </div>
+      <div class="dialog-actions"><button class="button" value="cancel">取消</button><button class="button primary" id="export-confirm" value="export"><span data-icon="download"></span>导出</button></div>
+    </form>
+  </dialog>
+  <dialog id="help-dialog">
+    <form method="dialog">
+      <div class="dialog-head"><h2>工作台帮助</h2><button class="icon-button" value="close" title="关闭" aria-label="关闭" data-icon="close"></button></div>
+      <div class="dialog-body help">
+        <p>导入图片后运行智能识别，或使用框选、分割与套索创建素材。使用画笔和橡皮擦调整覆盖范围。</p>
+        <dl><dt>导入</dt><dd>Ctrl / ⌘ + O</dd><dt>多选素材</dt><dd>Shift / Ctrl / ⌘ + 点选</dd><dt>缩放画布</dt><dd>滚轮</dd><dt>拖动画布</dt><dd>空格 + 拖动</dd><dt>适合窗口</dt><dd>0</dd><dt>撤销 / 重做</dt><dd>Ctrl / ⌘ + Z / Shift + Z</dd><dt>删除选中素材</dt><dd>Delete</dd></dl>
+        <p>重叠、阴影和混合背景中的像素无法可靠地还原。去除边缘残色会估算半透明像素的颜色。</p>
+      </div>
+    </form>
+  </dialog>
+  <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+  <input id="project-input" type="file" accept=".slice,application/json" hidden>
+</body>
+</html>
